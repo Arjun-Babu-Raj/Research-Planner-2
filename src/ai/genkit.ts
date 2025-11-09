@@ -1,0 +1,28 @@
+
+import {genkit, type GenkitOptions} from 'genkit';
+import {googleAI} from '@genkit-ai/google-genai';
+
+// Store the default configuration.
+const defaultConfig: GenkitOptions = {
+    plugins: [googleAI({ apiKey: process.env.GOOGLE_API_KEY })],
+};
+
+// Initialize the default AI instance.
+export const ai = genkit(defaultConfig);
+
+/**
+ * Gets a Genkit instance configured with the provided API key.
+ * This is used to dynamically create a new Genkit instance for each user request
+ * that provides their own API key.
+ *
+ * @param {string} apiKey - The user-provided Google AI API key.
+ * @returns {any} A configured Genkit instance.
+ */
+export function getAi(apiKey: string) {
+  const userConfig: GenkitOptions = {
+    plugins: [googleAI({ apiKey })],
+  };
+  
+  // Return a new instance of genkit configured with the user's API key.
+  return genkit(userConfig);
+}
