@@ -481,7 +481,7 @@ export function Dashboard() {
                     theme: 'grid',
                     styles: { fontSize: 10 },
                     headStyles: { fillColor: [7, 136, 135], fontStyle: 'bold' },
-                    didDrawPage: (data) => { y = data.cursor?.y || y },
+                    didDrawPage: (data: any) => { y = data.cursor?.y || y },
                     margin: { left: MARGIN, right: MARGIN },
                     tableWidth: CONTENT_WIDTH,
                 });
