@@ -8,6 +8,8 @@
     "start": "npx next start"
   },
   "dependencies": {
-    "next": "^15.3.3"
+    "next": "^15.3.3",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2"
   }
 }
