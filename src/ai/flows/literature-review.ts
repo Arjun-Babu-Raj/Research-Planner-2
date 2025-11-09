@@ -12,6 +12,7 @@
  */
 
 import { getAi } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { searchPubMed, type PubMedArticle } from '@/services/pubmed';
 import { searchScholarlyArticles } from '@/services/scholarly';
 import { z } from 'genkit';
@@ -106,9 +107,9 @@ Return your final output as a single, valid JSON object with the keys: "introduc
 
   // 2. Pass the raw article data to the AI for processing
   const { output } = await ai.generate({
-    model: 'googleai/gemini-2.5-flash',
+    model: googleAI('googleai/gemini-2.5-flash'),
     prompt: prompt,
-    history: [{role: 'user', content: [{text: JSON.stringify(articles)}]}],
+    messages: [{role: 'user', content: [{text: JSON.stringify(articles)}]}],
     output: {
       schema: LiteratureReviewOutputSchema
     }
