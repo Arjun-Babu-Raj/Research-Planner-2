@@ -6,5 +6,8 @@
     "dev": "npx next dev",
     "build": "npx next build",
     "start": "npx next start"
+  },
+  "dependencies": {
+    "next": "^16.0.1"
   }
 }
