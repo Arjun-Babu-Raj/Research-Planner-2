@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -244,7 +243,8 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h3.fontSize * styles.h3.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                toc.push({ title: text, page: doc.internal.getNumberOfPages(), level: 3, y: currentY });
+                // FIX 1
+                toc.push({ title: text, page: doc.getNumberOfPages(), level: 3, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h3.lineHeight });
                 currentY += requiredHeight;
             }
@@ -258,7 +258,8 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h2.fontSize * styles.h2.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                toc.push({ title: text, page: doc.internal.getNumberOfPages(), level: 2, y: currentY });
+                // FIX 2
+                toc.push({ title: text, page: doc.getNumberOfPages(), level: 2, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h2.lineHeight });
                 currentY += requiredHeight;
             }
@@ -273,7 +274,8 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h1.fontSize * styles.h1.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                toc.push({ title: text, page: doc.internal.getNumberOfPages(), level: 1, y: currentY });
+                // FIX 3
+                toc.push({ title: text, page: doc.getNumberOfPages(), level: 1, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h1.lineHeight });
                 currentY += requiredHeight;
             }
@@ -413,7 +415,8 @@ export function Dashboard() {
         
         doc.setFont('Helvetica', styles.h1.fontStyle);
         doc.setFontSize(styles.h1.fontSize);
-        toc.push({ title: mainHeadingText, page: doc.internal.getNumberOfPages(), level: 1, y: y});
+        // FIX 4
+        toc.push({ title: mainHeadingText, page: doc.getNumberOfPages(), level: 1, y: y});
         doc.text(mainHeadingText, MARGIN, y);
         y += styles.h1.fontSize * styles.h1.lineHeight;
         
@@ -430,7 +433,8 @@ export function Dashboard() {
                     doc.setFont('Helvetica', styles.h2.fontStyle);
                     doc.setFontSize(styles.h2.fontSize);
                     y = checkPageBreak(y, styles.h2.fontSize * styles.h2.lineHeight);
-                    toc.push({ title: text, page: doc.internal.getNumberOfPages(), level: 2, y: y });
+                    // FIX 5
+                    toc.push({ title: text, page: doc.getNumberOfPages(), level: 2, y: y });
                     doc.text(text, MARGIN, y);
                     y += styles.h2.fontSize * styles.h2.lineHeight;
                     
@@ -445,7 +449,8 @@ export function Dashboard() {
                 const articleHeadingText = `${headingCounters[0]}.${headingCounters[1]} Article Summaries`;
                 doc.setFont('Helvetica', styles.h2.fontStyle);
                 doc.setFontSize(styles.h2.fontSize);
-                toc.push({ title: articleHeadingText, page: doc.internal.getNumberOfPages(), level: 2, y: y });
+                // FIX 6
+                toc.push({ title: articleHeadingText, page: doc.getNumberOfPages(), level: 2, y: y });
                 doc.text(articleHeadingText, MARGIN, y);
                 y += styles.h2.fontSize * styles.h2.lineHeight;
 
@@ -500,7 +505,8 @@ export function Dashboard() {
         const refHeading = `${headingCounters[0]}. References`;
         doc.setFont('Helvetica', styles.h1.fontStyle);
         doc.setFontSize(styles.h1.fontSize);
-        toc.push({ title: refHeading, page: doc.internal.getNumberOfPages(), level: 1, y: y });
+        // FIX 7
+        toc.push({ title: refHeading, page: doc.getNumberOfPages(), level: 1, y: y });
         doc.text(refHeading, MARGIN, y);
         y += styles.h1.fontSize * styles.h1.lineHeight;
         
@@ -599,7 +605,7 @@ export function Dashboard() {
           <div>
             <div className="mb-10 text-center max-w-2xl mx-auto">
               <div className="flex items-center justify-center gap-2">
-                 <Input
+                  <Input
                     value={studyTitle}
                     onChange={(e) => setStudyTitle(e.target.value)}
                     placeholder="Enter your title here"
@@ -612,7 +618,7 @@ export function Dashboard() {
                <div className="mt-4 text-sm text-muted-foreground bg-accent/20 p-3 rounded-lg border border-border/50">
                 <p>For inspiration, you can explore the ICMR's repository of medical theses: <a href="https://www.icmr.gov.in/medical-shodhganga" target="_blank" rel="noopener noreferrer" className="text-primary underline">medical shodhganga/मेडिकल शोधगंगा</a>.</p>
                 <p className="mt-1 text-xs">Medical Shodhganga is a joint initiative of ICMR-DHR, MoHFW, and NMC, containing over 1400 topics across 24 specialties.</p>
-              </div>
+               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {Object.entries(SECTIONS).map(([key, { title, description }]) => (
