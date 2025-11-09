@@ -9,8 +9,5 @@
   },
   "dependencies": {
     "next": "^15.3.3"
-  },
-  "overrides": {
-    "next": "15.3.3"
   }
 }
