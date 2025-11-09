@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -12,19 +11,10 @@
  */
 
 import { getAi } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
+// We no longer need '@genkit-ai/google-genai' here
 import { searchPubMed, type PubMedArticle } from '@/services/pubmed';
 import { searchScholarlyArticles } from '@/services/scholarly';
 import { z } from 'genkit';
-
-const ScholarlyArticleSchema = z.object({
-  title: z.string().describe('The title of the article.'),
-  authors: z.string().describe('The primary author or authors, formatted as a string (e.g., "Doe J, Smith A").'),
-  year: z.string().describe('The year of publication.'),
-  journal: z.string().describe('The name of the journal or conference where the article was published.'),
-  abstract: z.string().describe('A concise summary of the article abstract.'),
-});
-type ScholarlyArticle = z.infer<typeof ScholarlyArticleSchema>;
 
 const LiteratureReviewInputSchema = z.object({
   studyTitle: z.string().describe('The title of the study to inform the literature search.'),
@@ -55,26 +45,38 @@ export type LiteratureReviewOutput = z.infer<typeof LiteratureReviewOutputSchema
 export async function literatureReview(input: LiteratureReviewInput & { apiKey: string }): Promise<LiteratureReviewOutput> {
   const ai = getAi(input.apiKey);
 
-  const prompt = `You are an expert research assistant. You have been given a study title and data from several relevant articles retrieved from PubMed and other scholarly sources. Your task is to perform three critical functions:
+  // --- THIS IS THE NEW, CORRECT APPROACH ---
+  const literatureReviewPrompt = ai.definePrompt({
+    name: 'literatureReviewPrompt',
+    input: {
+      schema: z.object({
+        studyTitle: z.string(),
+        articlesJSON: z.string(),
+      }),
+    },
+    output: { schema: LiteratureReviewOutputSchema },
+    prompt: `You are an expert research assistant. You have been given a study title and data from several relevant articles retrieved from PubMed. Your task is to perform three critical functions:
 
 1.  **Analyze each article**: For each article provided in the JSON data, create a summary object containing: the title, the primary author(s) (list first few if many), the publication year, the inferred study design, a full Vancouver style citation, and a concise summary of the abstract.
 
 2.  **Synthesize Key Concepts**: Identify the major themes, concepts, or methodologies discussed across the provided articles. If the study title itself implies a novel or complex methodology (e.g., "Health Technology Assessment", "Systematic Review", "Grounded Theory"), treat that methodology as a key concept to be explained. For EACH concept or methodology, create a separate object with a "concept" name and a "note". The note should be a short paragraph explaining it, citing the articles that discuss it using numeric citations in parentheses, like (1), (2), etc., corresponding to the article's order in the JSON data.
 
 3.  **Synthesize an Introduction**: Write a comprehensive 'Introduction' section for a research plan based on the provided study title and the literature. This introduction should:
-    *   Start with a broad opening statement.
-    *   Summarize the key findings from the literature (you can use the key concepts you just generated). Use numeric citations like (1), (2), etc.
-    *   Identify a specific gap or unanswered question in the current research.
-    *   Conclude with a clear statement of the research question and the primary objective of the current study.
+    * Start with a broad opening statement.
+    * Summarize the key findings from the literature (you can use the key concepts you just generated). Use numeric citations like (1), (2), etc.
+    * Identify a specific gap or unanswered question in the current research.
+    * Conclude with a clear statement of the research question and the primary objective of the current study.
 
 **Proposed Study Title:**
-"${input.studyTitle}"
+"{{{studyTitle}}}"
 
-**Article Data (from PubMed and other sources):**
-${"{{{articlesJSON}}}"}
+**Article Data (from PubMed):**
+{{{articlesJSON}}}
 
 Return your final output as a single, valid JSON object with the keys: "introduction", "keyConcepts", and "articles". Do not create a separate "methodologyNote" field.
-  `;
+  `,
+  });
+  // ----------------------------------------
   
   const searchStrategyForPubMed = `(${input.studyTitle}) AND (randomized controlled trial[Publication Type] OR systematic review[Publication Type] OR meta-analysis[Publication Type] OR review[Publication Type] OR cohort study[Publication Type])`;
 
@@ -106,14 +108,12 @@ Return your final output as a single, valid JSON object with the keys: "introduc
   }
 
   // 2. Pass the raw article data to the AI for processing
-  const { output } = await ai.generate({
-    model: googleAI('googleai/gemini-2.5-flash'),
-    prompt: prompt,
-    messages: [{role: 'user', content: [{text: JSON.stringify(articles)}]}],
-    output: {
-      schema: LiteratureReviewOutputSchema
-    }
+  // --- THIS IS THE NEW, CORRECT CALL ---
+  const { output } = await literatureReviewPrompt({
+    studyTitle: input.studyTitle,
+    articlesJSON: JSON.stringify(articles),
   });
+  // ------------------------------------
 
   if (!output) {
     throw new Error('The AI failed to generate a literature review.');
