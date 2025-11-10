@@ -5,7 +5,7 @@ import { AppHeader } from '@/components/header';
 import { StudySectionCard } from '@/components/study-section-card';
 import { Button } from '@/components/ui/button';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable'; // <-- FIX 1: Changed import
 import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -24,9 +24,9 @@ import { generatePisAndConsentAction } from '@/app/actions';
 
 
 // Extend jsPDF with autoTable
-interface jsPDFWithAutoTable extends jsPDF {
-  autoTable: (options: any) => jsPDF;
-}
+// interface jsPDFWithAutoTable extends jsPDF { // <-- FIX 2: Removed this interface
+//   autoTable: (options: any) => jsPDF;
+// }
 
 const SECTIONS = {
   Introduction: {
@@ -180,7 +180,7 @@ export function Dashboard() {
     };
 
   const handleExport = () => {
-    const doc = new jsPDF('p', 'pt', 'a4') as jsPDFWithAutoTable;
+    const doc = new jsPDF('p', 'pt', 'a4'); // <-- FIX 3: Removed cast
     
     doc.setFont('Helvetica');
     
@@ -243,7 +243,6 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h3.fontSize * styles.h3.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                // FIX 1
                 toc.push({ title: text, page: doc.getNumberOfPages(), level: 3, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h3.lineHeight });
                 currentY += requiredHeight;
@@ -258,7 +257,6 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h2.fontSize * styles.h2.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                // FIX 2
                 toc.push({ title: text, page: doc.getNumberOfPages(), level: 2, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h2.lineHeight });
                 currentY += requiredHeight;
@@ -274,7 +272,6 @@ export function Dashboard() {
                 textLines = doc.splitTextToSize(text, CONTENT_WIDTH);
                 const requiredHeight = textLines.length * styles.h1.fontSize * styles.h1.lineHeight;
                 currentY = checkPageBreak(currentY, requiredHeight);
-                // FIX 3
                 toc.push({ title: text, page: doc.getNumberOfPages(), level: 1, y: currentY });
                 doc.text(textLines, MARGIN, currentY, { lineHeightFactor: styles.h1.lineHeight });
                 currentY += requiredHeight;
@@ -415,7 +412,6 @@ export function Dashboard() {
         
         doc.setFont('Helvetica', styles.h1.fontStyle);
         doc.setFontSize(styles.h1.fontSize);
-        // FIX 4
         toc.push({ title: mainHeadingText, page: doc.getNumberOfPages(), level: 1, y: y});
         doc.text(mainHeadingText, MARGIN, y);
         y += styles.h1.fontSize * styles.h1.lineHeight;
@@ -433,7 +429,6 @@ export function Dashboard() {
                     doc.setFont('Helvetica', styles.h2.fontStyle);
                     doc.setFontSize(styles.h2.fontSize);
                     y = checkPageBreak(y, styles.h2.fontSize * styles.h2.lineHeight);
-                    // FIX 5
                     toc.push({ title: text, page: doc.getNumberOfPages(), level: 2, y: y });
                     doc.text(text, MARGIN, y);
                     y += styles.h2.fontSize * styles.h2.lineHeight;
@@ -449,13 +444,14 @@ export function Dashboard() {
                 const articleHeadingText = `${headingCounters[0]}.${headingCounters[1]} Article Summaries`;
                 doc.setFont('Helvetica', styles.h2.fontStyle);
                 doc.setFontSize(styles.h2.fontSize);
-                // FIX 6
                 toc.push({ title: articleHeadingText, page: doc.getNumberOfPages(), level: 2, y: y });
                 doc.text(articleHeadingText, MARGIN, y);
                 y += styles.h2.fontSize * styles.h2.lineHeight;
 
                 litReviewData.articles.forEach((a: any) => references.push(a.citation));
-                doc.autoTable({
+                
+                // --- FIX 4: Call autoTable as a function ---
+                autoTable(doc, {
                     head: [['Title', 'Author', 'Year', 'Design', 'Summary']],
                     body: litReviewData.articles.map((a: any) => [a.title, a.author, a.year, a.studyDesign, a.summary]),
                     startY: y,
@@ -466,7 +462,7 @@ export function Dashboard() {
                     margin: { left: MARGIN, right: MARGIN },
                     tableWidth: CONTENT_WIDTH,
                 });
-                y = (doc as any).autoTable.previous.finalY;
+                y = (doc as any).lastAutoTable.finalY; // <-- FIX 5: Use 'lastAutoTable.finalY'
 
             } catch (e) {
                  y = writeMarkdown("Error parsing literature review data.", y);
@@ -474,7 +470,8 @@ export function Dashboard() {
         } else if (key === 'Analysis' && content.includes('|')) {
             const tableData = parseMarkdownTable(content);
             if (tableData && tableData.rows.length > 0) {
-                 doc.autoTable({
+                 // --- FIX 6: Call autoTable as a function ---
+                 autoTable(doc, {
                     head: [tableData.headers],
                     body: tableData.rows,
                     startY: y,
@@ -485,7 +482,7 @@ export function Dashboard() {
                     margin: { left: MARGIN, right: MARGIN },
                     tableWidth: CONTENT_WIDTH,
                 });
-                y = (doc as any).autoTable.previous.finalY;
+                y = (doc as any).lastAutoTable.finalY; // <-- FIX 7: Use 'lastAutoTable.finalY'
             } else {
                  y = writeMarkdown(content, y);
             }
@@ -505,7 +502,6 @@ export function Dashboard() {
         const refHeading = `${headingCounters[0]}. References`;
         doc.setFont('Helvetica', styles.h1.fontStyle);
         doc.setFontSize(styles.h1.fontSize);
-        // FIX 7
         toc.push({ title: refHeading, page: doc.getNumberOfPages(), level: 1, y: y });
         doc.text(refHeading, MARGIN, y);
         y += styles.h1.fontSize * styles.h1.lineHeight;
@@ -614,7 +610,7 @@ export function Dashboard() {
                   <ClearWorkspaceDialog />
               </div>
 
-              <p className="text-md text-muted-foreground">This is your research study workspace. Generate, refine, and validate each section below.</p>
+              <p className="text-md text-muted-foreground">This is your research study. Generate, refine, and validate each section below.</p>
                <div className="mt-4 text-sm text-muted-foreground bg-accent/20 p-3 rounded-lg border border-border/50">
                 <p>For inspiration, you can explore the ICMR's repository of medical theses: <a href="https://www.icmr.gov.in/medical-shodhganga" target="_blank" rel="noopener noreferrer" className="text-primary underline">medical shodhganga/मेडिकल शोधगंगा</a>.</p>
                 <p className="mt-1 text-xs">Medical Shodhganga is a joint initiative of ICMR-DHR, MoHFW, and NMC, containing over 1400 topics across 24 specialties.</p>
