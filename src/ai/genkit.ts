@@ -1,5 +1,5 @@
 import {genkit, type GenkitOptions} from 'genkit';
-import {googleAI, type GoogleAIPluginParams} from '@genkit-ai/google-genai';
+import {googleAI} from '@genkit-ai/google-genai';
 
 // Store the default configuration.
 const defaultConfig: GenkitOptions = {
