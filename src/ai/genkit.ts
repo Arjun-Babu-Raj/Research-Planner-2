@@ -1,10 +1,10 @@
-
 import {genkit, type GenkitOptions} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import {googleAI, type GoogleAIPluginParams} from '@genkit-ai/google-genai';
 
 // Store the default configuration.
 const defaultConfig: GenkitOptions = {
     plugins: [googleAI({ apiKey: process.env.GOOGLE_API_KEY })],
+    model: 'googleai/gemini-2.5-flash',
 };
 
 // Initialize the default AI instance.
@@ -21,8 +21,9 @@ export const ai = genkit(defaultConfig);
 export function getAi(apiKey: string) {
   const userConfig: GenkitOptions = {
     plugins: [googleAI({ apiKey })],
+    model: 'googleai/gemini-2.5-flash',
   };
-  
-  // Return a new instance of genkit configured with the user's API key.
   return genkit(userConfig);
 }
+
+// NOTE: The extra configure() call from your old file is not needed.
